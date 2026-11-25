@@ -501,7 +501,7 @@ public final class Backgrounds {
         int rw = a.w, rh = a.h, u = 0, v = 0;
         if (ia > ta) { rw = Math.max(1, Math.round(a.h * ta)); u = (a.w - rw) / 2; }
         else { rh = Math.max(1, Math.round(a.w / ta)); v = (a.h - rh) / 2; }
-        ctx.drawTexture(a.texId, x, y, w, h, (float) u, (float) v, rw, rh, a.w, a.h);
+        Compat.drawTex(ctx, a.texId, x, y, w, h, (float) u, (float) v, rw, rh, a.w, a.h);
     }
 
     private static void upload(Anim a, int idx) {
@@ -510,7 +510,7 @@ public final class Backgrounds {
         int[] p = a.px[idx];
         int w = a.w, h = a.h;
         for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) img.setColor(x, y, p[y * w + x]);
+            for (int x = 0; x < w; x++) Compat.setPixel(img, x, y, p[y * w + x]);
         }
         a.tex.upload();
         a.shown = idx;

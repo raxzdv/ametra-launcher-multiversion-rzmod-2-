@@ -52,7 +52,7 @@ public final class OfflineSkin {
     /** Skin 64x32 (formato antiguo) -> 64x64: copia espejo de brazo y pierna izquierdos. */
     private static NativeImage upgrade(NativeImage s) {
         NativeImage d = new NativeImage(64, 64, true);
-        for (int y = 0; y < 32; y++) for (int x = 0; x < 64; x++) d.setColor(x, y, s.getColor(x, y));
+        for (int y = 0; y < 32; y++) for (int x = 0; x < 64; x++) Compat.setPixel(d, x, y, Compat.getPixel(s, x, y));
         mirror(s, d, 0, 16, 16, 48);   // pierna
         mirror(s, d, 40, 16, 32, 48);  // brazo
         return d;
@@ -66,11 +66,11 @@ public final class OfflineSkin {
         for (int i = 0; i < faces.length; i++) {
             int[] f = faces[i], g = faces[swap[i]];
             for (int yy = 0; yy < f[3]; yy++) for (int xx = 0; xx < f[2]; xx++)
-                d.setColor(dx + g[0] + (f[2] - 1 - xx), dy + g[1] + yy, s.getColor(sx + f[0] + xx, sy + f[1] + yy));
+                Compat.setPixel(d, dx + g[0] + (f[2] - 1 - xx), dy + g[1] + yy, Compat.getPixel(s, sx + f[0] + xx, sy + f[1] + yy));
         }
     }
     private static void opaque(NativeImage img, int x0, int y0, int w, int h) {
-        for (int y = y0; y < y0 + h; y++) for (int x = x0; x < x0 + w; x++) img.setColor(x, y, img.getColor(x, y) | 0xFF000000);
+        for (int y = y0; y < y0 + h; y++) for (int x = x0; x < x0 + w; x++) Compat.setPixel(img, x, y, Compat.getPixel(img, x, y) | 0xFF000000);
     }
 
     /** Textura de la skin local (llamar a ready() antes). */

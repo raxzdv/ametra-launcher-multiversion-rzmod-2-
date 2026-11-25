@@ -54,9 +54,9 @@ public final class Hitboxes {
             Box box = e.getBoundingBox().offset(e.getLerpedPos(delta).subtract(e.getPos()));
             if (e == mc.targetedEntity) {
                 // el que tienes en la mira se pinta en rojo para ver cuándo estás apuntando bien
-                WorldRenderer.drawBox(ms, vc, box, 1f, 0.3f, 0.3f, 1f);
+                Compat.drawBox(ms, vc, box, 1f, 0.3f, 0.3f, 1f);
             } else {
-                WorldRenderer.drawBox(ms, vc, box, r, g, b, 1f);
+                Compat.drawBox(ms, vc, box, r, g, b, 1f);
             }
         }
         ms.pop();

@@ -75,4 +75,27 @@ public final class Compat {
             return null;
         }
     }
+
+    // ---- añadido para RzClient multi-versión (1.21.2+: render nuevo) ----
+    public static void drawTex(DrawContext ctx, Identifier id, int x, int y, int w, int h, float u, float v, int rw, int rh, int tw, int th) {
+        ctx.drawTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, id, x, y, u, v, w, h, rw, rh, tw, th);
+    }
+
+    public static void drawTexTint(DrawContext ctx, Identifier id, int x, int y, int w, int h, float u, float v, int rw, int rh, int tw, int th, float alpha) {
+        int a = Math.max(0, Math.min(255, Math.round(alpha * 255f)));
+        ctx.drawTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, id, x, y, u, v, w, h, rw, rh, tw, th, (a << 24) | 0xFFFFFF);
+    }
+
+    private static int swapRB(int c) { return (c & 0xFF00FF00) | ((c >> 16) & 0xFF) | ((c & 0xFF) << 16); }
+    /** Píxel en formato ABGR (como antes); NativeImage ahora usa ARGB. */
+    public static int getPixel(net.minecraft.client.texture.NativeImage img, int x, int y) { return swapRB(img.getColorArgb(x, y)); }
+    public static void setPixel(net.minecraft.client.texture.NativeImage img, int x, int y, int abgr) { img.setColorArgb(x, y, swapRB(abgr)); }
+
+    public static void drawBox(net.minecraft.client.util.math.MatrixStack ms, VertexConsumer vc, net.minecraft.util.math.Box box, float r, float g, float b, float a) {
+        net.minecraft.client.render.VertexRendering.drawBox(ms, vc, box, r, g, b, a);
+    }
+
+    /** TODO: los cosméticos 3D usan el render nuevo (EntityRenderState); aún no portados en esta familia. */
+    public static void registerCosmetics() {
+    }
 }

@@ -43,11 +43,7 @@ public class AmetraClient implements ClientModInitializer {
         });
 
         // Cosméticos del launcher (capa, alas, sombrero, gafas, mochila) sobre el jugador local.
-        LivingEntityFeatureRendererRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
-            if (entityType == EntityType.PLAYER && entityRenderer instanceof PlayerEntityRenderer pr) {
-                registrationHelper.register(new CosmeticsFeature(pr));
-            }
-        });
+        Compat.registerCosmetics();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             Custom.init(client);

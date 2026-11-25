@@ -253,11 +253,11 @@ public class AmetraTitleScreen extends Screen {
         limb(ctx, tex, -4 - aw2 / 2f, 8, lArm, 44, 20, 44, 36, aw2, 12);
         limb(ctx, tex, 4 + aw2 / 2f, 8, rArm, 36, 52, 52, 52, aw2, 12);
         // cuerpo + chaqueta
-        ctx.drawTexture(tex, -4, 8, 8, 12, 20, 20, 8, 12, 64, 64);
-        ctx.drawTexture(tex, -4, 8, 8, 12, 20, 36, 8, 12, 64, 64);
+        Compat.drawTex(ctx, tex, -4, 8, 8, 12, 20, 20, 8, 12, 64, 64);
+        Compat.drawTex(ctx, tex, -4, 8, 8, 12, 20, 36, 8, 12, 64, 64);
         // cabeza + gorro
-        ctx.drawTexture(tex, -4, 0, 8, 8, 8, 8, 8, 8, 64, 64);
-        ctx.drawTexture(tex, -4, 0, 8, 8, 40, 8, 8, 8, 64, 64);
+        Compat.drawTex(ctx, tex, -4, 0, 8, 8, 8, 8, 8, 8, 64, 64);
+        Compat.drawTex(ctx, tex, -4, 0, 8, 8, 40, 8, 8, 8, 64, 64);
         m.pop();
     }
 
@@ -268,8 +268,8 @@ public class AmetraTitleScreen extends Screen {
         m.translate(px, py, 0);
         m.multiply(new Quaternionf().rotateZ(ang));
         int x = -w / 2;
-        ctx.drawTexture(tex, x, 0, w, h, u, v, w, h, 64, 64);
-        ctx.drawTexture(tex, x, 0, w, h, u2, v2, w, h, 64, 64);
+        Compat.drawTex(ctx, tex, x, 0, w, h, u, v, w, h, 64, 64);
+        Compat.drawTex(ctx, tex, x, 0, w, h, u2, v2, w, h, 64, 64);
         m.pop();
     }
 

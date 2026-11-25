@@ -75,4 +75,32 @@ public final class Compat {
             return null;
         }
     }
+
+    // ---- añadido para RzClient multi-versión ----
+    public static void drawTex(DrawContext ctx, Identifier id, int x, int y, int w, int h, float u, float v, int rw, int rh, int tw, int th) {
+        ctx.drawTexture(id, x, y, w, h, u, v, rw, rh, tw, th);
+    }
+
+    public static void drawTexTint(DrawContext ctx, Identifier id, int x, int y, int w, int h, float u, float v, int rw, int rh, int tw, int th, float alpha) {
+        ctx.setShaderColor(1f, 1f, 1f, alpha);
+        ctx.drawTexture(id, x, y, w, h, u, v, rw, rh, tw, th);
+        ctx.setShaderColor(1f, 1f, 1f, 1f);
+    }
+
+    /** Píxel en formato ABGR (el de NativeImage antes de 1.21.2). */
+    public static int getPixel(net.minecraft.client.texture.NativeImage img, int x, int y) { return img.getColor(x, y); }
+    public static void setPixel(net.minecraft.client.texture.NativeImage img, int x, int y, int abgr) { img.setColor(x, y, abgr); }
+
+    public static void drawBox(net.minecraft.client.util.math.MatrixStack ms, VertexConsumer vc, net.minecraft.util.math.Box box, float r, float g, float b, float a) {
+        net.minecraft.client.render.WorldRenderer.drawBox(ms, vc, box, r, g, b, a);
+    }
+
+    /** Cosméticos 3D sobre el jugador local (FeatureRenderer). */
+    public static void registerCosmetics() {
+        net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
+            if (entityType == net.minecraft.entity.EntityType.PLAYER && entityRenderer instanceof net.minecraft.client.render.entity.PlayerEntityRenderer pr) {
+                registrationHelper.register(new CosmeticsFeature(pr));
+            }
+        });
+    }
 }

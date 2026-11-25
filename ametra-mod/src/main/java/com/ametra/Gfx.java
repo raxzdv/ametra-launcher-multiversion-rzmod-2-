@@ -132,9 +132,7 @@ public final class Gfx {
         MatrixStack ms = ctx.getMatrices();
         ms.push();
         ms.translate(x, y, 0f);
-        ctx.setShaderColor(1f, 1f, 1f, Colors.clamp01(alpha));
-        ctx.drawTexture(id, 0, 0, px, px, 0f, 0f, t, t, t, t);
-        ctx.setShaderColor(1f, 1f, 1f, 1f);
+        Compat.drawTexTint(ctx, id, 0, 0, px, px, 0f, 0f, t, t, t, t, Colors.clamp01(alpha));
         ms.pop();
     }
 

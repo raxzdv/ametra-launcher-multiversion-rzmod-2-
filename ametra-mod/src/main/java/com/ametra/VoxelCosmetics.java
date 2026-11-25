@@ -191,7 +191,7 @@ public final class VoxelCosmetics {
     }
 
     /** Dibuja los cosméticos propios equipados sobre el jugador local. */
-    public static void render(MatrixStack ms, VertexConsumerProvider vcp, int light, PlayerEntityModel<AbstractClientPlayerEntity> model,
+    public static void render(MatrixStack ms, VertexConsumerProvider vcp, int light, PlayerEntityModel model,
                               boolean helmet, boolean chest) {
         list(); // refresca cada pocos segundos
         Map<String, Cos> now = new LinkedHashMap<>();

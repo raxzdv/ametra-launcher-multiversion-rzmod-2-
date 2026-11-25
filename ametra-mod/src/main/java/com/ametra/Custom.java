@@ -82,7 +82,7 @@ public final class Custom {
 
     public static void drawCrosshair(DrawContext ctx, int cx, int cy, int size) {
         int w = size, h = Math.max(1, Math.round(size * (ch / (float) cw)));
-        ctx.drawTexture(CROSS_ID, cx - w / 2, cy - h / 2, w, h, 0f, 0f, cw, ch, cw, ch);
+        Compat.drawTex(ctx, CROSS_ID, cx - w / 2, cy - h / 2, w, h, 0f, 0f, cw, ch, cw, ch);
     }
 
     public static void reloadCross() {
