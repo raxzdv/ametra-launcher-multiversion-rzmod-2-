@@ -1,0 +1,51 @@
+plugins {
+	id 'fabric-loom' version '1.10.5'
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+// Código que cambia entre versiones de Minecraft (Compat, ScreenBase y algunos mixins) vive en src/compat/<familia>.
+// La familia sale de  versions/<mc>.properties  (clave "compat").
+sourceSets {
+	main {
+		java {
+			srcDir "src/compat/${project.compat}/java"
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+// Secreto compartido con el servidor (config.yml del plugin). Se pasa con -Pguard_secret=... o la variable AMETRA_GUARD_SECRET.
+def guardSecret = (project.findProperty('guard_secret') ?: System.getenv('AMETRA_GUARD_SECRET') ?: '').toString().trim()
+
+processResources {
+	inputs.property "guard_secret", guardSecret
+	inputs.property "version", project.version
+	inputs.property "mc_dep", project.mc_dep
+	filesMatching(["fabric.mod.json", "ametra.dat"]) {
+		expand "version": project.version, "mc_dep": project.mc_dep, "java_version": project.java_version, "guard_secret": guardSecret
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = project.java_version.toInteger()
+	it.options.encoding = "UTF-8"
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.toVersion(project.java_version)
+	targetCompatibility = JavaVersion.toVersion(project.java_version)
+}

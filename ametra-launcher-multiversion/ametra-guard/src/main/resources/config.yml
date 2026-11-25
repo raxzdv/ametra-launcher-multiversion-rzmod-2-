@@ -1,0 +1,62 @@
+# Secreto compartido con el cliente. Déjalo vacío: se genera solo la primera vez.
+# Copia ese mismo valor al compilar el cliente (guard_secret). Sin él, nadie podrá entrar.
+secret: ""
+
+# Segundos que tiene un jugador para responder antes de ser expulsado (sin el cliente oficial no entra).
+verify-timeout-seconds: 10
+kick-message: "Necesitas el cliente oficial para entrar."
+
+# Quién entra sin cliente (staff, Bedrock vía Geyser/Floodgate...)
+exempt-permission: ametraguard.bypass
+exempt-name-prefixes: ["."]
+
+# SHA-256 de los jars del cliente permitidos. Vacío = no se exige (se imprime el hash en la consola al entrar).
+allowed-jar-hashes: []
+
+# blocklist: se rechazan los mods de las listas de abajo. whitelist: solo entran los mods de allowed-*.
+mod-policy: blocklist
+blocked-mod-ids:
+  - wurst
+  - meteor-client
+  - liquidbounce
+  - aristois
+  - impact
+  - future
+  - sigma
+  - thunderhack
+  - baritone
+  - freecam
+blocked-mod-keywords:
+  - killaura
+  - aimbot
+  - triggerbot
+  - autoclick
+  - xray
+  - x-ray
+  - scaffold
+  - nuker
+allowed-mod-ids: [minecraft, java, fabricloader, fabric-api, ametra, mixinextras]
+allowed-mod-id-prefixes: ["fabric-"]
+
+# Clases que el cliente intenta localizar (sin ejecutarlas). Se actualiza aquí, sin recompilar el cliente.
+probe-classes:
+  - net.wurstclient.WurstClient
+  - meteordevelopment.meteorclient.MeteorClient
+  - net.ccbluex.liquidbounce.LiquidBounce
+
+# Agentes Java (-javaagent) del cliente: alert | kick | ignore.
+# authlib-injector es habitual en launchers offline: agrégalo a allowed-agents si lo usas.
+javaagent-policy: alert
+allowed-agents: []
+
+# Análisis de comportamiento.
+ai:
+  enabled: true
+  alert-threshold: 0.80      # probabilidad desde la que una ventana suma sospecha
+  vl-alert: 4                # sospecha acumulada para avisar al staff
+  vl-action: 12              # sospecha acumulada para actuar (si action != none)
+  action: none               # none | kick  (el ban lo decide el staff)
+  min-windows-baseline: 150  # ventanas necesarias para confiar en la línea base aprendida
+
+# Avisos también por Discord (opcional)
+discord-webhook: ""

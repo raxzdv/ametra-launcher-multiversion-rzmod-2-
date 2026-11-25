@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data: blob: https://cdn.modrinth.com; media-src 'self' blob:">
+  <title>RzClient</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="dawn.css">
+  <link rel="stylesheet" href="premium.css">
+  <link rel="stylesheet" href="home-mellow.css">
+</head>
+<body>
+  <div id="bgfx" aria-hidden="true"><canvas id="bgCanvas"></canvas><video id="bgVideo" muted loop playsinline hidden></video><img id="bgImg" alt="" hidden></div>
+  <div class="app">
+    <!-- BARRA LATERAL -->
+    <aside class="side">
+      <div class="logo"><img src="assets/logo.svg" alt=""></div>
+      <nav class="nav" aria-label="Navegación">
+        <button data-page="home" class="on">
+          <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg><span>Inicio</span>
+        </button>
+        <button data-page="mods">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg><span>Mods</span>
+        </button>
+        <button data-page="cosmetics">
+          <svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg><span>Cosméticos</span>
+        </button>
+        <button data-page="store">
+          <svg viewBox="0 0 24 24"><path d="M4 8h16l-1.2 11a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8L4 8z"/><path d="M8.5 8V6.5a3.5 3.5 0 0 1 7 0V8"/></svg><span>Tienda</span>
+        </button>
+        <button data-page="accounts">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.8-3.6 3.7-5.6 7.5-5.6s6.7 2 7.5 5.6"/></svg><span>Cuentas</span>
+        </button>
+        <button data-page="servers">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01"/></svg><span>Servidores</span>
+        </button>
+        <button data-page="challenges">
+          <svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0V4zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M8 20h8M9 17h6"/></svg><span>Desafíos</span>
+        </button>
+        <button data-page="settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>Ajustes</span>
+        </button>
+      </nav>
+      <button class="btn primary" id="play" title="Jugar">▶&nbsp; Jugar</button>
+      <button class="acct" data-page="profile" aria-label="Cuenta">
+        <canvas id="avatar" width="8" height="8"></canvas>
+        <span class="acct-txt"><b id="acctName">Jugador</b><small id="acctMode">Sin conexión</small></span>
+      </button>
+    </aside>
+
+    <!-- CONTENIDO -->
+    <section class="content">
+      <header class="titlebar">
+        <span class="drag"><img class="wm" src="assets/logo-wordmark.png" alt="RzClient"> <small>1.3.0</small></span>
+        <button id="min" aria-label="Minimizar">–</button>
+        <button id="close" aria-label="Cerrar">×</button>
+      </header>
+
+      <main>
+        <!-- INICIO: "Santuario" (el jugador en el centro, sus datos orbitan a su alrededor) -->
+        <section class="page active" id="page-home">
+          <div class="dtop">
+            <div class="brandtabs"><button class="bt on"><b class="pix">RZ</b></button><button class="bt"><span class="pix dim">CLIENT</span></button></div>
+            <div class="topact">
+              <button class="dbtn" data-page="store"><svg viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Comercio</button>
+              <button class="dbtn gold" data-page="store"><i class="gem"></i><b id="gemTop">0</b></button>
+            </div>
+          </div>
+          <h1 id="greet" hidden></h1>
+          <div class="sanct">
+            <div class="hero" id="hero">
+              <canvas id="heroBg"></canvas>
+              <button class="hero-user" data-page="profile"><b id="heroUser">Jugador</b><small>→ Ir al perfil</small></button>
+              <div class="stage herostage" id="heroStage"><div class="model" id="heroModel"></div></div>
+              <button class="wardrobe" data-page="cosmetics">Click para el Armario</button>
+              <div class="hero-txt"><p class="hero-name" id="heroName"></p><p class="meta" id="heroMeta"></p></div>
+              <button class="hero-edit" id="heroMods" title="Carpeta de mods">✎</button>
+              <button id="heroPlay" hidden></button>
+            </div>
+            <div class="sa-ring" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="sa-orbit">
+              <div class="orb"><b id="stTime">0 min</b><span>Tiempo jugado</span></div>
+              <div class="orb"><b id="stInst">1</b><span>Perfiles</span></div>
+              <div class="orb"><b id="stLast">Nunca</b><span>Último juego</span></div>
+            </div>
+
+            <div class="profile-banner">
+              <div class="profile-skin"><canvas id="versionSkin" width="64" height="64"></canvas><span class="online-dot"></span></div>
+              <div class="profile-copy"><span class="eyebrow">PERFIL ACTIVO</span><strong id="versionPlayer">Jugador</strong><small id="versionPlayerMeta">Sin conexión · Selecciona una versión para jugar</small></div>
+              <button class="profile-edit" data-page="profile">Editar</button>
+            </div>
+
+            <aside class="sa-dock">
+              <div class="rhead">
+                <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Perfiles</span>
+                <div class="edchips"><button class="chip on" data-ed="java">Java ✓</button><button class="chip" data-ed="bedrock">BEDROCK</button></div>
+              </div>
+              <div class="instances" id="instances"></div>
+              <div class="dbottom">
+                <button class="pixbtn" id="manageAll"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Administrar perfiles</button>
+                <button class="dbtn wide" id="addInst">+ Instancia</button>
+                <button class="dbtn wide" id="addModsHome">+ Mods</button>
+              </div>
+              <p id="modWarn" class="warn" role="alert"></p>
+            </aside>
+
+            <aside class="sa-feed">
+              <div class="nhead"><span class="dotor"></span><b>Novedades</b><span class="nav-dots" id="newsDots"></span></div>
+              <div class="news">
+                <article class="newscard n1"><span class="tag">NUEVO</span><b>Tienda y cosméticos nuevos</b><p>48 cosméticos: sets Ángel, Demonio y Vacío y el Payaso.</p></article>
+                <article class="newscard n2"><span class="tag">MODS</span><b>Biblioteca de mods</b><p>Sodium, Iris, Xaero y miles más de Modrinth con un clic.</p></article>
+                <article class="newscard n3"><span class="tag">CLIENTE</span><b>Perfiles y códigos</b><p>Comparte tu configuración con un código AMETRA1.</p></article>
+              </div>
+              <div class="srvcard"><div class="srvban">SERVIDORES</div><button class="dbtn full" data-page="servers">Abrir servidores</button><button class="dbtn full" data-page="servers">Gestionar servidores</button></div>
+            </aside>
+
+            <div class="sa-bgbar"><button id="homeBgNext" title="Siguiente fondo">🖼 Cambiar fondo</button><button id="homeBgAdd" title="Añadir GIF, imagen o vídeo">＋ Añadir fondo</button></div>
+            <button class="sa-play" id="orbPlay"><span>▶</span> JUGAR</button>
+          </div>
+        </section>
+
+        <!-- MODS -->
+        <section class="page" id="page-mods">
+          <div class="head">
+            <div>
+              <h1>Mods</h1>
+              <p class="sub" id="clInst"></p>
+            </div>
+            <input class="search" id="modSearch" placeholder="Buscar mods…" autocomplete="off">
+          </div>
+
+          <div class="msw" id="modSw">
+            <button data-sec="ametra" class="on">RzClient</button>
+            <button data-sec="lib">Biblioteca de mods</button>
+            <button data-sec="inst">Instalados</button>
+          </div>
+
+          <div class="card optcard" id="bedCard" hidden>
+            <div class="opt-top">
+              <div>
+                <b>Minecraft Bedrock</b>
+                <p class="meta">Bedrock no usa mods de Java. Aquí puedes instalar packs de recursos, add-ons y mundos.</p>
+              </div>
+              <button class="btn" id="bedImport">Instalar pack / add-on</button>
+            </div>
+            <p class="meta">Formatos: .mcpack · .mcaddon · .mcworld · .mcstructure · .mctemplate. Minecraft los abre e importa solo.</p>
+            <div class="opt-top mt"><button class="btn" id="bedRzClient">Instalar pack RzClient</button> <button class="ghost" id="bedFolder">Abrir carpeta com.mojang</button></div>
+            <p class="meta" id="bedMsg"></p>
+            <div id="bedLists"></div>
+          </div>
+
+          <div class="card optcard sa" id="optCard">
+            <div class="opt-top">
+              <div>
+                <b>Pack de rendimiento</b>
+                <p id="optSummary" class="meta">Calculando…</p>
+              </div>
+              <button class="btn" id="optNow">Instalar ahora</button>
+            </div>
+            <ul id="optMods" class="optmods"></ul>
+            <p class="meta" id="optMsg"></p>
+          </div>
+
+          <h2 class="sa">Perfiles</h2>
+          <div class="profiles sa" id="profList"></div>
+
+          <div class="tabs sa" id="modTabs">
+            <button class="tab on" data-cat="all">Todos</button>
+            <button class="tab" data-cat="perf">Rendimiento</button>
+            <button class="tab" data-cat="hud">HUD</button>
+            <button class="tab" data-cat="visual">Visual</button>
+            <button class="tab" data-cat="util">Utilidad</button>
+          </div>
+          <div class="modgrid sa" id="modGrid"></div>
+          <p class="meta sa" id="clMsg"></p>
+
+          <h2 class="sa">Color del cliente</h2>
+          <div class="colorrow sa">
+            <input type="color" id="accent" value="#f7931e" aria-label="Color de acento">
+            <span class="meta" id="accentHex">#F7931E</span>
+          </div>
+          <div class="dnabox sa">
+            <label class="chk"><input type="checkbox" id="dnaOn"> <b>ADN de skin</b> — colorea el launcher y el HUD con los colores de tu skin</label>
+            <div class="dnarow"><span id="dnaSwatches" class="dnasw"></span><button class="btn" id="dnaNow">Recalcular</button></div>
+            <p class="meta" id="dnaState"></p>
+          </div>
+          <p class="meta tip sa">Dentro del juego pulsa <b>Shift derecho</b> para abrir el menú de RzClient. Lo que cambies allí se sincroniza aquí.</p>
+
+          <!-- BIBLIOTECA DE MODS -->
+          <div id="modLib">
+            <p class="meta" id="libInst"></p>
+            <h2>Packs de un clic</h2>
+            <div class="packs" id="libPacks"></div>
+            <div class="libbar">
+              <input class="search" id="libSearch" placeholder="Buscar en Modrinth (miles de mods)…" autocomplete="off">
+            </div>
+            <div class="tabs" id="libChips"></div>
+            <div class="modgrid" id="libGrid"></div>
+            <div class="libmore"><button class="btn" id="libMore" hidden>Cargar más</button></div>
+            <p class="meta" id="libMsg"></p>
+          </div>
+
+          <!-- MODS INSTALADOS -->
+          <div id="modInst">
+            <div class="opt-top">
+              <p class="meta" id="instSub"></p>
+              <div class="two">
+                <button class="btn" id="instAdd">Añadir .jar</button>
+                <button class="btn" id="instOpen">Abrir carpeta</button>
+              </div>
+            </div>
+            <div class="instlist" id="instList"></div>
+            <div class="opt-top mt">
+              <p class="meta">Las capturas de pantalla del juego se guardan en la carpeta de la instancia.</p>
+              <button class="btn" id="instShots">Ver capturas</button>
+            </div>
+            <p class="meta" id="instMsg"></p>
+          </div>
+        </section>
+
+        <!-- COSMÉTICOS -->
+        <section class="page" id="page-cosmetics">
+          <div class="head">
+            <div>
+              <h1>Cosméticos</h1>
+              <p class="sub">Elige cómo te ven los demás. Arrastra el personaje para girarlo.</p>
+            </div>
+            <div style="display:flex;gap:8px"><button class="btn" id="cosStudio">＋ Crear cosmético 3D</button><button class="btn" id="cosReset">Quitar todo</button></div>
+          </div>
+          <div class="cosmain">
+            <div class="cospreview">
+              <div class="stage" id="cosStage"><div class="model" id="cosModel"></div></div>
+              <p class="meta" id="cosWear"></p>
+            </div>
+            <div class="cospanel">
+              <div class="tabs" id="cosTabs"></div>
+              <div class="cosgrid" id="cosGrid"></div>
+              <p class="meta" id="cosMsg"></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- TIENDA -->
+        <section class="page" id="page-store">
+          <div class="head">
+            <div>
+              <h1>Tienda</h1>
+              <p class="sub">Gana gemas jugando y cámbialas por cosméticos. Pruébalos antes de comprar.</p>
+            </div>
+            <div class="wallet"><i class="gem"></i><b id="gemCount">0</b><button class="btn" id="dailyBtn">Bono diario</button><button class="btn primary" id="gemsBtn">+ Gemas</button></div>
+          </div>
+          <div class="stacct" id="stAcct" hidden></div>
+          <div class="giftbox" id="giftBox" hidden></div>
+          <div class="deal" id="dealBox"></div>
+          <div class="cosmain">
+            <div class="cospreview">
+              <div class="stage" id="stStage"><div class="model" id="stModel"></div></div>
+              <div class="stinfo" id="stInfo"></div>
+            </div>
+            <div class="cospanel">
+              <div class="tabs" id="stTabs"></div>
+              <div class="cosgrid" id="stGrid"></div>
+              <p class="meta" id="stMsg"></p>
+              <div class="sthist" id="stHist" hidden></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SERVIDORES -->
+        <section class="page" id="page-servers">
+          <div class="head">
+            <div>
+              <h1>Servidores</h1>
+              <p class="sub">Entra directo a tu servidor con la instancia seleccionada.</p>
+            </div>
+            <button class="btn" id="srvAdd">+ Añadir servidor</button>
+          </div>
+          <div class="srv-bar">
+            <input type="search" id="srvQ" placeholder="Buscar servidor…" aria-label="Buscar servidor">
+            <select id="srvSort" aria-label="Ordenar por">
+              <option value="rec">Recomendado</option>
+              <option value="pl">Más jugadores</option>
+              <option value="name">Nombre A-Z</option>
+            </select>
+            <label class="srv-only"><input type="checkbox" id="srvOnline"> Solo online</label>
+          </div>
+          <div class="sec-title">
+            <div><h2>Servidores partner</h2><p class="meta">Servidores aliados de RzClient.</p></div>
+            <button class="ghost" id="devBtn">Developer</button>
+          </div>
+          <div class="devtools" id="devTools" hidden>
+            <button class="btn" id="pAdd">+ Añadir partner</button>
+            <button class="btn" id="pExport">Exportar JSON</button>
+            <button class="btn" id="pReset">Restablecer lista</button>
+            <button class="btn" id="pAccounts">Cuentas…</button>
+            <button class="btn" id="devOut">Cerrar sesión developer</button>
+          </div>
+          <div class="servers srv-grid" id="partnerList"></div>
+          <div class="sec-title"><h2>Mis servidores</h2></div>
+          <div class="servers srv-grid" id="srvList"></div>
+        </section>
+
+        <section class="page" id="page-challenges">
+          <div class="head">
+            <div>
+              <h1>Desafíos</h1>
+              <p class="sub">Completa desafíos semanales y gana gemas.</p>
+            </div>
+            <span class="meta" id="chReset"></span>
+          </div>
+          <div class="ch-list" id="chList"></div>
+        </section>
+
+        <!-- CUENTAS -->
+        <section class="page" id="page-accounts">
+          <div class="head"><div><h1>Cuentas</h1><p class="sub">Tu cuenta RzClient, regalos recibidos y panel developer.</p></div></div>
+          <div class="card form accbox" id="accCard">
+            <div class="accout" id="accOut">
+              <h3>Cuenta RzClient</h3>
+              <p class="meta">Guarda tus gemas y cosméticos en tu cuenta, juega desde cualquier PC y regala cosméticos a tus amigos.</p>
+              <div class="two">
+                <label>Usuario <input id="accUser" maxlength="16" placeholder="tu_nombre" autocomplete="off" spellcheck="false"></label>
+                <label>Contraseña <input id="accPw" type="password" maxlength="128" placeholder="mínimo 6 caracteres" autocomplete="off"></label>
+              </div>
+              <div class="two">
+                <button class="btn primary" id="accLogin">Iniciar sesión</button>
+                <button class="btn" id="accReg">Crear cuenta</button>
+              </div>
+              <button class="ghost" id="accRetry" hidden>Reintentar sesión guardada</button>
+            </div>
+            <div class="accin" id="accIn" hidden>
+              <h3><span id="accName">—</span><span class="badge" id="accAdminBadge" hidden>DEV</span></h3>
+              <p class="meta" id="accStats"></p>
+              <div class="devtools">
+                <button class="btn" id="accOutBtn">Cerrar sesión</button>
+              </div>
+            </div>
+            <p class="meta errtxt" id="accErr"></p>
+            <p class="meta" id="accHost"></p>
+          </div>
+          <div class="card form accbox" id="accNotesCard" hidden>
+            <h3>Actividad</h3>
+            <div class="accnotes" id="accNotes"></div>
+          </div>
+          <div class="card form accbox" id="accDevCard">
+            <h3>Panel developer <span class="badge">DEV</span></h3>
+            <p class="meta" id="accaHelp"></p>
+            <div class="two">
+              <label>Cuenta <input id="accaUser" maxlength="16" placeholder="usuario de la cuenta" autocomplete="off" spellcheck="false"></label>
+              <label>Cosmético <select id="accaItem"></select></label>
+            </div>
+            <div class="two">
+              <button type="button" class="btn primary" id="accaGive">Dar cosmético</button>
+              <button type="button" class="btn" id="accaTake">Quitar cosmético</button>
+            </div>
+            <label>Gemas <small>(negativo para restar)</small> <input id="accaGems" type="number" step="1" placeholder="500" autocomplete="off"></label>
+            <div class="two">
+              <button type="button" class="btn" id="accaGemsBtn">Sumar / restar gemas</button>
+              <button type="button" class="btn" id="accaLook">Ver cuenta</button>
+            </div>
+            <p class="meta" id="accaMsg"></p>
+          </div>
+        </section>
+
+        <!-- AJUSTES -->
+        <section class="page" id="page-settings">
+          <div class="head"><div><h1>Ajustes</h1><p class="sub">Memoria, Java y opciones del cliente.</p></div></div>
+          <div class="cols">
+            <div class="card form">
+              <h3>Rendimiento</h3>
+              <label>Memoria: <b id="ramLabel"></b>
+                <input id="ram" type="range" min="2" max="16" value="4">
+              </label>
+              <label>Ruta de Java (déjalo vacío: RzClient elige o descarga el correcto)
+                <input id="java" placeholder="C:\Program Files\Java\jdk-21\bin\java.exe" autocomplete="off">
+              </label>
+            </div>
+            <div class="card form">
+              <h3>Fondo del launcher</h3>
+              <label>Fondo animado
+                <select id="lbgSel"></select>
+              </label>
+              <label>Oscurecer fondo: <b id="lbgDimV"></b>
+                <input id="lbgDim" type="range" min="0" max="85" value="45">
+              </label>
+              <label class="chk"><input type="checkbox" id="lbgHome"> Usar este fondo también en el Inicio</label>
+              <div class="two">
+                <button class="btn" id="lbgAdd">Añadir GIF / imagen / vídeo</button>
+                <button class="btn" id="lbgFolder">Abrir carpeta de fondos</button>
+              </div>
+              <button class="btn" id="lbgDel" hidden>Quitar este fondo</button>
+              <p class="meta">Acepta PNG, JPG, WEBP, GIF animados y vídeos MP4 / WebM (máx. 150 MB). Los vídeos van sin sonido.</p>
+            </div>
+            <div class="card form">
+              <h3>Cliente</h3>
+              <label class="chk"><input type="checkbox" id="fabric"> Usar Fabric (necesario para mods)</label>
+              <label class="chk"><input type="checkbox" id="optimize"> Pack de optimización automático</label>
+              <label class="chk"><input type="checkbox" id="modernJava"> Java moderno (1.14 en adelante)</label>
+              <label class="chk"><input type="checkbox" id="autoJoin"> Entrar al servidor principal al pulsar Jugar</label>
+              <label class="chk"><input type="checkbox" id="ametra"> Menú de RzClient en el juego (Shift derecho, 1.21.1)</label>
+              <div class="two">
+                <button class="btn" id="addMods">Añadir mods (.jar)</button>
+                <button class="btn" id="openMods">Abrir carpeta de mods</button>
+              </div>
+              <div class="two">
+                <button class="btn" id="openBgs">Carpeta de fondos del menú</button>
+              </div>
+              <p class="meta" id="modsInfo">Los mods se guardan por instancia: van a la que tengas seleccionada.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- CUENTA -->
+        <section class="page" id="page-profile">
+          <div class="head"><div><h1>Cuenta</h1><p class="sub">Inicia sesión o juega sin conexión.</p></div></div>
+          <div class="acctrow">
+            <div class="card form">
+              <div class="two">
+                <button class="btn on" id="modeOff">Sin conexión</button>
+                <button class="btn" id="modeMs">Microsoft (premium)</button>
+              </div>
+              <label>Nombre de jugador
+                <input id="name" maxlength="16" placeholder="Steve" autocomplete="off">
+              </label>
+              <p class="meta" id="acctInfo"></p>
+              <button class="btn" id="skin">Cambiar skin…</button>
+              <div id="skinApply" hidden>
+                <div class="two">
+                  <button class="btn on" id="varClassic">Clásico (brazos anchos)</button>
+                  <button class="btn" id="varSlim">Slim (brazos finos)</button>
+                </div>
+                <button class="btn" id="skinSave">Aplicar a mi cuenta</button>
+              </div>
+              <p class="meta" id="skinMsg">Elige un archivo .png de 64×64. Se aplica a tu cuenta premium y se ve en todos los servidores.</p>
+            </div>
+            <div class="skinbox">
+              <div class="stage" id="skin3d"><div class="model" id="model"></div></div>
+              <p class="meta" id="skinName"></p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- BARRA DE LANZAMIENTO -->
+      <div class="launchbar">
+        <div class="lb-inst" id="lbInst">
+          <div class="lb-ico" id="lbIco">M</div>
+          <div><b id="lbName">Minecraft</b><span id="lbMeta">1.21.1</span></div>
+        </div>
+        <div class="lb-mid">
+          <p id="status" role="status"></p>
+          <div class="bar" id="bar" hidden><i id="fill"></i></div>
+        </div>
+        
+      </div>
+    </section>
+  </div>
+
+  <dialog id="dlg">
+    <form method="dialog" id="dlgForm">
+      <h3 id="dlgTitle">Añadir instancia</h3>
+      <label>Nombre <input id="iName" maxlength="24" placeholder="Mi survival" autocomplete="off"></label>
+      <label id="iEdWrap">Edición
+        <select id="iEdition"><option value="java">Java (Fabric, mods)</option><option value="bedrock">Bedrock (Windows 10/11)</option></select>
+      </label>
+      <label id="iVerWrap">Versión
+        <select id="iVersion">
+          <option>1.21.1</option><option>1.20.4</option><option>1.16.5</option><option>1.8.9</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button value="cancel" class="ghost">Cancelar</button>
+        <button value="ok" class="btn primary" id="dlgOk">Crear</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgProf">
+    <form method="dialog" id="dlgProfForm">
+      <h3>Guardar perfil</h3>
+      <label>Nombre <input id="pName" maxlength="20" placeholder="Mi perfil" autocomplete="off"></label>
+      <p class="meta">Guarda tus módulos, memoria, cosméticos y HUD actuales.</p>
+      <div class="actions">
+        <button value="cancel" class="ghost">Cancelar</button>
+        <button value="ok" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgSrv">
+    <form method="dialog" id="dlgSrvForm">
+      <h3 id="sTitle">Añadir servidor</h3>
+      <label>Nombre <input id="sName" maxlength="24" placeholder="Mi servidor" autocomplete="off"></label>
+      <label>Dirección <input id="sHost" maxlength="64" placeholder="play.ejemplo.net:25565" autocomplete="off"></label>
+      <label>Dirección Bedrock <small>(opcional, si es distinta)</small> <input id="sBedrock" maxlength="64" placeholder="play.ejemplo.net:19132" autocomplete="off"></label>
+      <label class="chk"><input type="checkbox" id="sMain"> Entrar aquí al pulsar Jugar</label>
+      <div class="logopick">
+        <div class="sico" id="sLogoPrev"></div>
+        <div class="lbtns">
+          <span class="meta">Logo del servidor (PNG, JPG o WebP)</span>
+          <div>
+            <button type="button" class="ghost" id="sLogoBtn">Elegir imagen</button>
+            <button type="button" class="ghost" id="sLogoDel">Quitar</button>
+          </div>
+        </div>
+        <input type="file" id="sLogoFile" accept="image/png,image/jpeg,image/webp" hidden>
+      </div>
+      <p class="meta errtxt" id="sErr"></p>
+      <div class="actions">
+        <button value="cancel" class="ghost">Cancelar</button>
+        <button value="ok" class="btn primary" id="sOk">Añadir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgDev" class="dev-dialog">
+    <form method="dialog" id="dlgDevForm">
+      <div class="dev-mark"><span>◆</span><small>RZCLIENT ACCESS</small></div>
+      <h3 id="devTitle">Developer</h3>
+      <p class="meta" id="devHelp"></p>
+      <div class="dev-secure"><span class="lock-icon">⌁</span><span><b>Zona protegida</b><small>La sesión solo dura mientras el launcher esté abierto</small></span></div>
+      <label>Contraseña <input id="devPw" type="password" minlength="6" autocomplete="current-password" placeholder="Escribe tu contraseña"></label>
+      <label id="devPw2Row">Repite la contraseña <input id="devPw2" type="password" minlength="6" autocomplete="new-password" placeholder="Confirma tu contraseña"></label>
+      <p class="meta errtxt" id="devErr"></p>
+      <div class="actions">
+        <button type="button" class="ghost" id="devCancel">Cancelar</button>
+        <button value="ok" class="btn primary" id="devOk">Entrar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgGems">
+    <form method="dialog">
+      <h3>Comprar gemas</h3>
+      <p class="meta" id="gemsInfo"></p>
+      <div class="packs" id="packList"></div>
+      <p class="meta errtxt" id="gemsErr"></p>
+      <div class="actions"><button value="x" class="ghost">Cerrar</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgBuy" class="wide">
+    <form method="dialog" id="dlgBuyForm">
+      <h3 id="buyTitle">Confirmar compra</h3>
+      <div class="buyitem"><canvas id="buyIcon" width="72" height="72"></canvas><div><b id="buyName"></b><span class="meta" id="buySub"></span></div></div>
+      <ul class="buylist" id="buyList" hidden></ul>
+      <div class="buysum" id="buySum"></div>
+      <label class="buyeq" id="buyEqRow"><input type="checkbox" id="buyEquip"> Equipar al comprar</label>
+      <p class="meta errtxt" id="buyWarn"></p>
+      <div class="actions">
+        <button type="button" class="ghost" id="buyCancel">Cancelar</button>
+        <button value="ok" class="btn primary" id="buyOk">Comprar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgGift">
+    <form method="dialog" id="dlgGiftForm">
+      <h3>Regalar cosmético</h3>
+      <p class="meta" id="giftWhat"></p>
+      <label>Usuario que lo recibe <input id="giftTo" maxlength="16" placeholder="nombre de su cuenta RzClient" autocomplete="off" spellcheck="false"></label>
+      <p class="meta errtxt" id="giftErr"></p>
+      <div class="actions">
+        <button type="button" class="ghost" id="giftCancel">Cancelar</button>
+        <button value="ok" class="btn primary" id="giftOk">Regalar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgPartner">
+    <form method="dialog" id="dlgPartnerForm">
+      <h3 id="ptTitle">Añadir partner</h3>
+      <label>Nombre <input id="ptName" maxlength="28" placeholder="Mi servidor partner" autocomplete="off"></label>
+      <label>Dirección <input id="ptHost" maxlength="64" placeholder="play.ejemplo.net:25565" autocomplete="off"></label>
+      <label>Dirección Bedrock <small>(opcional, si es distinta)</small> <input id="ptBedrock" maxlength="64" placeholder="play.ejemplo.net:19132" autocomplete="off"></label>
+      <label>Descripción corta <input id="ptDesc" maxlength="120" placeholder="Survival, PvP y más" autocomplete="off"></label>
+      <label>Web o Discord (opcional) <input id="ptUrl" maxlength="200" placeholder="https://discord.gg/..." autocomplete="off"></label>
+      <label>Color <input id="ptColor" type="color" value="#8a5be0"></label>
+      <label class="chk"><input type="checkbox" id="ptMain"> Servidor principal: entrar aquí al pulsar Jugar</label>
+      <div class="logopick">
+        <div class="sico" id="ptLogoPrev"></div>
+        <div class="lbtns">
+          <span class="meta">Logo del servidor (PNG, JPG o WebP)</span>
+          <div>
+            <button type="button" class="ghost" id="ptLogoBtn">Elegir imagen</button>
+            <button type="button" class="ghost" id="ptLogoDel">Quitar</button>
+          </div>
+        </div>
+        <input type="file" id="ptLogoFile" accept="image/png,image/jpeg,image/webp" hidden>
+      </div>
+      <p class="meta errtxt" id="ptErr"></p>
+      <div class="actions">
+        <button type="button" class="ghost" id="ptCancel">Cancelar</button>
+        <button value="ok" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="assets/cosmetics/data.js"></script>
+  <script src="renderer.js"></script>
+  <script src="account.js"></script>
+  <script src="store.js"></script>
+  <script src="challenges.js"></script>
+  <script src="modsys.js"></script>
+  <script src="fx.js"></script>
+  <script src="bgfx.js"></script>
+  <script src="dna.js"></script>
+  <script src="home.js"></script>
+</body>
+</html>

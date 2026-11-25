@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "RzClient",
+    "description": "Logo, mira y textos de Ametra para Minecraft Bedrock",
+    "uuid": "aa5cde79-c9ae-434d-a487-e5fda0b38546",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      20,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "b6ac4e73-afa8-46ff-abcd-febf370fa474",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

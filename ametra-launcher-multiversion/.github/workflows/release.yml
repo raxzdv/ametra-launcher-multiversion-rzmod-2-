@@ -1,0 +1,79 @@
+name: Release
+
+# Compila el mod (jar) y el instalador del launcher (.exe) sin instalar nada en tu PC.
+# Uso: sube el proyecto a GitHub -> pestaña Actions -> "Release" -> Run workflow.
+# Para publicar una release: crea un tag, p. ej.  git tag v1.0.0 && git push --tags
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  mod:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Una entrada por "familia" de versiones: cada jar acepta el rango de mc_dep de su .properties (ver mod-compat.json)
+        # RzMod en TODAS las versiones. Las que aún no tienen código portado (1.19.x sin DrawContext, 1.21.3+ render nuevo)
+        # fallarán aquí con el error exacto a corregir en su Compat.java; el resto se publica igual (fail-fast: false).
+        mc: ['1.19.2','1.19.3','1.19.4','1.20.1','1.20.2','1.20.4','1.20.6','1.21.1','1.21.3','1.21.4','1.21.5','1.21.8','1.21.11']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.12' }
+      - name: Compilar mod ${{ matrix.mc }}
+        working-directory: ametra-mod
+        env:
+          AMETRA_GUARD_SECRET: ${{ secrets.AMETRA_GUARD_SECRET }}
+        run: |
+          bash tools/resolve.sh ${{ matrix.mc }}
+          gradle build --no-daemon
+          mkdir -p ../out
+          cp "$(ls build/libs/*.jar | grep -v sources | head -n1)" ../out/rzmod-${{ matrix.mc }}.jar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rzmod-${{ matrix.mc }}
+          path: out/*.jar
+
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.12' }
+      - name: Compilar plugin de servidor
+        working-directory: ametra-guard
+        run: gradle build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AmetraGuard-plugin
+          path: ametra-guard/build/libs/AmetraGuard-*.jar
+
+  launcher:
+    needs: mod
+    if: ${{ !cancelled() }}   # aunque alguna versión no compile, se publican las que sí
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/download-artifact@v4
+        with: { pattern: rzmod-*, path: mod, merge-multiple: true }
+      - run: npm install
+      - run: npx electron-builder --win --publish never
+      - uses: actions/upload-artifact@v4
+        with: { name: ametra-launcher-windows, path: dist/*.exe }
+      - name: Publicar release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.exe
+            dist/latest.yml
+            dist/*.blockmap
+            mod/rzmod-*.jar

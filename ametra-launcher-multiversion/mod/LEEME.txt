@@ -1,0 +1,6 @@
+Aquí va rzmod.jar (el mod del juego).
+Compílalo desde la carpeta ametra-mod (mira el README) y copia el .jar de build/libs/ con este nombre exacto:
+
+    mod/rzmod.jar
+
+El launcher lo copia solo a la carpeta mods de la instancia cuando juegas con Fabric.

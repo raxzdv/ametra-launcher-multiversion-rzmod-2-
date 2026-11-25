@@ -1,0 +1,188 @@
+/* ===== Ametra "Prisma" — capa de diseño sobre styles.css =====
+   Dock de cristal que se expande, aurora viva con tu color de acento, tarjetas con foco que sigue al cursor,
+   borde giratorio en la instancia elegida y barra de lanzamiento flotante. Solo CSS + fx.js: no toca la lógica. */
+@property --ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+:root {
+  --bg: #07070b;
+  --side: transparent;
+  --card: rgba(255, 255, 255, .045);
+  --card2: rgba(255, 255, 255, .075);
+  --line: rgba(255, 255, 255, .09);
+  --muted: #9a9aae;
+  --ac2: color-mix(in srgb, var(--ac) 55%, #4f7cff);
+  --glass: rgba(16, 16, 24, .58);
+  --r: 20px;
+  --mx: 50%; --my: 50%; --px: 0; --py: 0;
+}
+body { background: var(--bg); }
+
+/* ---------- Aurora + grano ---------- */
+body::before {
+  content: ""; position: fixed; inset: -25%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(38% 42% at calc(22% + var(--px) * 30px) calc(18% + var(--py) * 30px), color-mix(in srgb, var(--ac) 34%, transparent), transparent 70%),
+    radial-gradient(34% 40% at calc(82% - var(--px) * 40px) calc(30% - var(--py) * 20px), color-mix(in srgb, var(--ac2) 26%, transparent), transparent 70%),
+    radial-gradient(46% 38% at 55% 92%, color-mix(in srgb, var(--ac) 20%, transparent), transparent 70%);
+  animation: drift 26s ease-in-out infinite alternate;
+}
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+@keyframes drift { from { transform: rotate(0deg) scale(1); } to { transform: rotate(14deg) scale(1.12); } }
+.app { position: relative; z-index: 2; background: transparent; grid-template-columns: 100px 1fr; }
+.content { background: transparent; grid-column: 2; }
+
+/* ---------- Dock lateral: cristal que se expande al pasar el cursor ---------- */
+.side {
+  position: absolute; z-index: 20; left: 14px; top: 14px; bottom: 14px; width: 72px; padding: 18px 10px 12px;
+  overflow: hidden; border: 1px solid var(--line); border-radius: 26px; background: var(--glass);
+  backdrop-filter: blur(26px) saturate(1.5); -webkit-backdrop-filter: blur(26px) saturate(1.5);
+  box-shadow: 0 20px 60px #0009, inset 0 1px 0 #ffffff12;
+  transition: width .32s cubic-bezier(.2, .8, .2, 1), box-shadow .3s;
+}
+.side:hover { width: 216px; box-shadow: 0 24px 80px #000b, 0 0 60px color-mix(in srgb, var(--ac) 18%, transparent), inset 0 1px 0 #ffffff16; }
+.logo { padding: 0 8px 20px; white-space: nowrap; }
+.logo span, .nav button span, .acct-txt { opacity: 0; transform: translateX(-6px); transition: opacity .2s, transform .3s; }
+.side:hover .logo span, .side:hover .nav button span, .side:hover .acct-txt { opacity: 1; transform: none; transition-delay: .06s; }
+.logo span { background: linear-gradient(90deg, #fff, var(--ac)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.nav { gap: 6px; }
+.nav button { padding: 12px; white-space: nowrap; border-radius: 16px; overflow: hidden; }
+.nav button:hover { background: #ffffff10; }
+.nav button.on {
+  color: #fff; background: linear-gradient(135deg, color-mix(in srgb, var(--ac) 80%, #fff 0%), color-mix(in srgb, var(--ac2) 70%, #000));
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--ac) 45%, transparent), inset 0 1px 0 #ffffff40;
+}
+.nav button.on::before { display: none; }
+.nav button.on svg { stroke: #fff; }
+.acct { padding: 8px; border-radius: 18px; background: #ffffff0a; white-space: nowrap; overflow: hidden; }
+#avatar { width: 40px; height: 40px; border-radius: 12px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--ac) 60%, transparent); }
+
+/* ---------- Páginas ---------- */
+.page { padding: 0 40px 30px 6px; }
+.page::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ac) 35%, #2a2a3a); }
+.page.active > * { animation: rise .5s cubic-bezier(.2, .8, .2, 1) both; }
+.page.active > *:nth-child(2) { animation-delay: .05s; } .page.active > *:nth-child(3) { animation-delay: .1s; }
+.page.active > *:nth-child(4) { animation-delay: .15s; } .page.active > *:nth-child(5) { animation-delay: .2s; }
+.page.active > *:nth-child(6) { animation-delay: .25s; } .page.active > *:nth-child(n+7) { animation-delay: .3s; }
+@keyframes rise { from { opacity: 0; transform: translateY(16px) scale(.985); } to { opacity: 1; transform: none; } }
+h1 { font-size: 30px; letter-spacing: -.4px; }
+#greet { background: linear-gradient(95deg, #fff 30%, var(--ac)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+#greet span { color: inherit; }
+h2 { font-size: 13px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }
+.tag { color: #fff; background: color-mix(in srgb, var(--ac) 30%, transparent); border: 1px solid var(--ac-line); box-shadow: 0 0 18px color-mix(in srgb, var(--ac) 30%, transparent); }
+
+/* ---------- Tarjetas de cristal con foco que sigue al cursor ---------- */
+.card, .newscard, .inst, .add, .mcard, .srv, .cos, .prof, .pack, .irow, .stats div, .wallet, .cospreview, .skinbox, .deal {
+  position: relative; background-color: var(--card); border-color: var(--line); border-radius: var(--r);
+  box-shadow: inset 0 1px 0 #ffffff0d, 0 8px 30px #0003;
+  transition: border-color .25s, transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s, background-color .25s;
+}
+.card::after, .newscard::after, .inst::after, .add::after, .mcard::after, .srv::after, .cos::after, .prof::after, .pack::after, .irow::after, .deal::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(260px circle at var(--mx) var(--my), color-mix(in srgb, var(--ac) 22%, transparent), transparent 65%);
+}
+.card:hover::after, .newscard:hover::after, .inst:hover::after, .add:hover::after, .mcard:hover::after, .srv:hover::after, .cos:hover::after, .prof:hover::after, .pack:hover::after, .irow:hover::after, .deal:hover::after { opacity: 1; }
+.inst:hover, .newscard:hover, .srv:hover, .pack:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--ac) 45%, transparent); box-shadow: 0 16px 40px #0006, 0 0 0 1px color-mix(in srgb, var(--ac) 18%, transparent); }
+.mcard:hover, .cos:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--ac) 45%, transparent); }
+.inst .ico, .mcard .mico, .srv .sico, .lb-ico { box-shadow: 0 6px 20px #0006, inset 0 1px 0 #ffffff55; }
+.newscard::before { opacity: 1; }
+
+/* instancia elegida: borde que gira */
+.inst.sel {
+  border: 1.5px solid transparent;
+  background: linear-gradient(#14141c, #14141c) padding-box,
+    conic-gradient(from var(--ang), var(--ac), transparent 25%, var(--ac2) 52%, transparent 78%, var(--ac)) border-box;
+  animation: spin 5s linear infinite; box-shadow: 0 0 34px color-mix(in srgb, var(--ac) 28%, transparent);
+}
+@keyframes spin { to { --ang: 360deg; } }
+
+/* ---------- Héroe ---------- */
+.hero { height: 230px; border-radius: 28px; border: 1px solid var(--line); box-shadow: 0 30px 80px #0007, 0 0 80px color-mix(in srgb, var(--ac) 14%, transparent); }
+.hero::after { background: linear-gradient(100deg, #000000d8 0%, #00000055 55%, transparent), radial-gradient(60% 90% at 100% 100%, color-mix(in srgb, var(--ac) 30%, transparent), transparent); }
+.hero-name { font-size: 40px; letter-spacing: -.8px; }
+.stats div { border-radius: 16px; }
+
+/* ---------- Botones ---------- */
+.btn { border-radius: 14px; background: var(--card2); border-color: var(--line); }
+.btn:hover { background: #ffffff16; border-color: var(--ac-line); }
+.btn.primary {
+  position: relative; overflow: hidden; border: 0;
+  background: linear-gradient(135deg, var(--ac), color-mix(in srgb, var(--ac2) 75%, #000));
+  box-shadow: 0 8px 26px color-mix(in srgb, var(--ac) 40%, transparent), inset 0 1px 0 #ffffff55;
+}
+.btn.primary::after { content: ""; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; transform: skewX(-20deg); background: linear-gradient(90deg, transparent, #ffffff55, transparent); }
+.btn.primary:hover { background: linear-gradient(135deg, color-mix(in srgb, var(--ac) 85%, #fff), var(--ac2)); box-shadow: 0 10px 40px color-mix(in srgb, var(--ac) 65%, transparent), inset 0 1px 0 #ffffff66; }
+.btn.primary:hover::after { left: 130%; transition: left .7s ease; }
+.btn.big { border-radius: 18px; }
+#play:not(:disabled), #heroPlay:not(:disabled) { animation: pulse 2.6s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 8px 46px color-mix(in srgb, var(--ac) 75%, transparent), inset 0 1px 0 #ffffff55; } }
+.tab, .msw { background: var(--card); backdrop-filter: blur(10px); }
+.tab.on { background: linear-gradient(135deg, var(--ac), var(--ac2)); border-color: transparent; box-shadow: 0 6px 20px color-mix(in srgb, var(--ac) 35%, transparent); }
+.search, input, select { background: #ffffff0a; border-radius: 14px; }
+select option { background: #14141c; color: #f2f2f7; }
+.sw.on { background: linear-gradient(135deg, var(--ac), var(--ac2)); box-shadow: 0 0 14px color-mix(in srgb, var(--ac) 50%, transparent); }
+
+/* ---------- Barra de lanzamiento flotante ---------- */
+.launchbar {
+  margin: 0 40px 18px 6px; padding: 12px 14px 12px 18px; border: 1px solid var(--line); border-radius: 26px;
+  background: var(--glass); backdrop-filter: blur(26px) saturate(1.5); -webkit-backdrop-filter: blur(26px) saturate(1.5);
+  box-shadow: 0 20px 60px #0008, 0 0 50px color-mix(in srgb, var(--ac) 12%, transparent), inset 0 1px 0 #ffffff14;
+}
+.bar { height: 6px; background: #ffffff12; border-radius: 6px; }
+.bar i { background: linear-gradient(90deg, var(--ac), var(--ac2), var(--ac)); background-size: 200% 100%; animation: flow 1.4s linear infinite; box-shadow: 0 0 14px var(--ac); border-radius: 6px; }
+@keyframes flow { to { background-position: -200% 0; } }
+
+/* ---------- Ventanas ---------- */
+dialog { color: var(--text); background: rgba(18, 18, 26, .92); border: 1px solid var(--line); border-radius: 24px; box-shadow: 0 40px 120px #000c; backdrop-filter: blur(30px); }
+dialog::backdrop { background: #000a; backdrop-filter: blur(6px); }
+.titlebar button { border-radius: 0 0 12px 12px; }
+@media (prefers-reduced-motion: reduce) { body::before, .inst.sel, #play, #heroPlay, .bar i, .page.active > * { animation: none !important; } }
+
+/* ---------- Cuenta Ametra, regalos y panel developer ---------- */
+.accbox { margin-bottom: 18px; }
+.accbox h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 4px; }
+.accbox .accout, .accbox .accin { display: grid; gap: 14px; }
+.accbox .devtools { margin: 0; }
+.stacct { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; padding: 12px 16px; font-size: 13px; color: var(--muted); background: var(--card); border: 1px dashed var(--ac-line); border-radius: 16px; }
+.stacct .btn { flex: none; }
+.giftbox { display: grid; gap: 6px; justify-items: start; margin-bottom: 14px; padding: 14px 18px; background: linear-gradient(100deg, var(--ac-soft), var(--card) 80%); border: 1px solid var(--ac-line); border-radius: 18px; }
+.giftbox p { margin: 0; font-size: 14px; }
+.giftbox .btn { margin-top: 6px; }
+.nav button { position: relative; }
+.nav button.hasnew::after { content: ""; position: absolute; top: 10px; left: 30px; width: 9px; height: 9px; border-radius: 50%; background: #ff5d73; box-shadow: 0 0 0 3px #0b0b10; }
+dialog.wide { width: 440px; }
+dialog select { width: 100%; padding: 10px 12px; color: var(--text); background: #14141c; border: 1px solid var(--line); border-radius: 12px; font: inherit; }
+.accnotes { display: grid; gap: 6px; }
+.accnotes p { margin: 0; }
+#page-accounts .accbox { max-width: 760px; }
+
+/* ---------- Compra: diálogo de confirmación, sets e historial ---------- */
+.buyitem { display: flex; align-items: center; gap: 14px; }
+.buyitem canvas { width: 72px; height: 72px; image-rendering: pixelated; flex: none; background: #14141c; border-radius: 14px; }
+.buyitem > div { display: grid; gap: 3px; min-width: 0; }
+.buyitem b { font-size: 16px; }
+.buylist { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; max-height: 150px; overflow: auto; font-size: 13px; }
+.buylist li { display: flex; justify-content: space-between; gap: 10px; padding: 5px 10px; background: #14141c; border-radius: 10px; }
+.buylist li span:last-child { color: var(--muted); }
+.buysum { display: grid; gap: 6px; padding: 12px 14px; background: #14141c; border: 1px solid var(--line); border-radius: 14px; font-size: 14px; }
+.buysum div { display: flex; justify-content: space-between; align-items: center; }
+.buysum .tot { padding-top: 6px; border-top: 1px solid var(--line); font-weight: 700; }
+.buysum .off { color: #7be0a0; }
+.buysum .low { color: #f1948a; }
+.buyeq { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.btn.buying { opacity: .7; cursor: wait; }
+.setbox { display: grid; gap: 6px; margin-top: 12px; padding: 12px 14px; background: var(--card); border: 1px dashed var(--ac-line); border-radius: 14px; font-size: 13px; }
+.setbox b { font-size: 14px; }
+.setbar { height: 6px; border-radius: 3px; background: #14141c; overflow: hidden; }
+.setbar i { display: block; height: 100%; background: var(--ac); border-radius: 3px; }
+.sthist { margin-top: 14px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; font-size: 13px; }
+.sthist h4 { margin: 0 0 8px; font-size: 12px; letter-spacing: .6px; color: var(--muted); }
+.sthist p { margin: 0; display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; border-top: 1px solid #ffffff0d; }
+.sthist p:first-of-type { border-top: 0; }
+.sthist p span:last-child { color: var(--muted); white-space: nowrap; }
+.ptag { display: inline-block; margin-left: 6px; padding: 1px 6px; font-size: 10px; font-weight: 700; color: #7be0a0; border: 1px solid #7be0a055; border-radius: 6px; }
+
+.packs { display: grid; gap: 8px; }
+.packs .btn.pack { padding: 14px; font-size: 15px; text-align: left; }

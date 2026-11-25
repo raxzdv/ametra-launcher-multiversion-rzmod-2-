@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Estudio de cosméticos · Ametra</title>
+<style>
+:root{--bg:#0c0c12;--p:#151520;--p2:#1e1e2c;--line:#2a2a3a;--tx:#f2f2f6;--mu:#8e8e9e;--ac:#8fd6a8}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:12px/1.4 Consolas,monospace;overflow:hidden;user-select:none}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.panel{position:absolute;background:rgba(21,21,32,.94);border:1px solid var(--line);border-radius:8px;padding:10px}
+#tools{left:12px;top:70px;display:flex;flex-direction:column;gap:6px}
+.tb{width:38px;height:38px;border-radius:6px;border:1px solid var(--line);background:var(--p2);color:var(--tx);cursor:pointer;font-size:16px}
+.tb.on{border-color:var(--ac);background:#243a2e}
+#top{left:12px;right:12px;top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input,select,button.b{background:var(--p2);color:var(--tx);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:inherit}
+button.b{cursor:pointer}button.b:hover,.tb:hover{border-color:var(--ac)}
+#info{right:12px;top:70px;width:260px;max-height:calc(100% - 150px);overflow:auto}
+#info h3{margin:0 0 8px;font-size:13px}
+.row{display:flex;justify-content:space-between;gap:8px;margin:5px 0;color:var(--mu)}.row b{color:var(--tx);background:var(--p2);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-weight:400}
+#pal{left:50%;transform:translateX(-50%);bottom:12px;display:flex;gap:5px;align-items:center}
+.sw{width:22px;height:22px;border-radius:4px;border:2px solid transparent;cursor:pointer}.sw.on{border-color:#fff}
+#stat{left:12px;bottom:12px;padding:6px 10px}
+#toast{position:absolute;left:50%;top:60px;transform:translateX(-50%);background:#0b0b11;border:1px solid var(--ac);border-radius:6px;padding:6px 12px;opacity:0;transition:.25s;pointer-events:none}
+#list{margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
+.li{display:flex;justify-content:space-between;padding:3px 0;cursor:pointer;color:var(--mu)}.li:hover{color:var(--tx)}
+</style></head><body>
+<canvas id="cv"></canvas>
+<div class="panel" id="top">
+  <b style="color:var(--ac)">ESTUDIO 3D</b>
+  <input id="name" placeholder="Nombre" maxlength="24" style="width:150px">
+  <select id="slot"></select>
+  <button class="b" id="mir">Simetría X: sí</button>
+  <button class="b" id="undo">↶</button><button class="b" id="redo">↷</button>
+  <button class="b" id="clr">Vaciar</button>
+  <button class="b" id="new">Nuevo</button>
+  <button class="b" id="save" style="border-color:var(--ac)">Guardar</button>
+  <span id="cnt" style="margin-left:auto;color:var(--mu)"></span>
+</div>
+<div class="panel" id="tools"></div>
+<div class="panel" id="info">
+  <h3>Controles</h3>
+  <div class="row">Mover cámara<b>W A S D</b></div>
+  <div class="row">Girar vista<b>Q E</b></div>
+  <div class="row">Subir / bajar plano<b>Espacio / Shift</b></div>
+  <div class="row">Orbitar<b>Arrastrar</b></div>
+  <div class="row">Desplazar<b>Clic der.</b></div>
+  <div class="row">Zoom<b>Rueda</b></div>
+  <div class="row">Colocar bloque<b>Clic</b></div>
+  <div class="row">Herramientas<b>1-5</b></div>
+  <div class="row">Deshacer / rehacer<b>Ctrl+Z / Y</b></div>
+  <p id="hint" style="color:var(--mu);margin:8px 0 0"></p>
+  <div id="list"><div style="color:var(--mu);margin-bottom:4px">MIS COSMÉTICOS</div><div id="items"></div></div>
+</div>
+<div class="panel" id="pal"></div>
+<div class="panel" id="stat">X 0 Y 0 Z 0</div>
+<div id="toast"></div>
+<script>
+'use strict';
+const MAXV = 512, GX0 = -16, GX1 = 15, GY1 = 39, GZ0 = -16, GZ1 = 15;
+const SLOTS = [['cape','Capa'],['wings','Alas'],['hat','Gorro'],['glasses','Gafas'],['pack','Mochila'],['back','Espalda'],['boots','Botas'],['fists','Puños'],['aura','Aura'],['face','Cara']];
+const SIDE = { wings:1, boots:1, fists:1 };
+const HINTS = { wings:'Alas, botas y puños: construye solo el lado izquierdo (X positivo); el juego lo refleja.', cape:'El frente es +Z (donde está la nariz del muñeco). La capa va por detrás: Z negativo, pegada a la espalda.' };
+const PAL = ['#ffffff','#bfbfc9','#6b6b78','#1b1b22','#e63946','#ff8c42','#ffd93d','#8fd6a8','#2a9d8f','#4cc9f0','#4361ee','#9b5de5','#f15bb5','#8d5524','#c68642','#ffd7a8'];
+const cv = document.getElementById('cv'), g = cv.getContext('2d');
+const $ = (i) => document.getElementById(i);
+let W = 0, H = 0;
+const vox = new Map(); // "x,y,z" -> '#rrggbb'
+let undoS = [], redoS = [];
+let tool = 0, color = PAL[7], mirror = true, layer = 0, lineStart = null, hover = null, mouse = { x: 0, y: 0 };
+let cam = { yaw: 0.6, pitch: 0.5, dist: 90, f: 900, tx: 0, ty: 14, tz: 0 };
+const K = (x, y, z) => x + ',' + y + ',' + z;
+const inB = (x, y, z) => x >= GX0 && x <= GX1 && y >= 0 && y <= GY1 && z >= GZ0 && z <= GZ1;
+
+// ---------- UI ----------
+const TOOLS = [['＋','Colocar (1)'],['✕','Borrar (2)'],['⌖','Cuentagotas (3)'],['⟋','Línea (4)'],['▭','Caja rellena (5)']];
+TOOLS.forEach((t, i) => { const b = document.createElement('button'); b.className = 'tb'; b.textContent = t[0]; b.title = t[1]; b.onclick = () => setTool(i); $('tools').appendChild(b); });
+function setTool(i) { tool = i; lineStart = null; [...$('tools').children].forEach((b, k) => b.classList.toggle('on', k === i)); }
+setTool(0);
+SLOTS.forEach(s => { const o = document.createElement('option'); o.value = s[0]; o.textContent = s[1]; $('slot').appendChild(o); });
+$('slot').onchange = () => { mirror = !SIDE[$('slot').value]; updMir(); $('hint').textContent = HINTS[$('slot').value] || ''; };
+function updMir() { $('mir').textContent = 'Simetría X: ' + (mirror ? 'sí' : 'no'); }
+$('mir').onclick = () => { mirror = !mirror; updMir(); };
+PAL.forEach(c => { const d = document.createElement('div'); d.className = 'sw'; d.style.background = c; d.onclick = () => setColor(c); $('pal').appendChild(d); });
+const ci = document.createElement('input'); ci.type = 'color'; ci.value = color; ci.style.cssText = 'width:30px;height:26px;padding:0'; ci.oninput = () => setColor(ci.value); $('pal').appendChild(ci);
+function setColor(c) { color = c; ci.value = c; [...$('pal').children].forEach(d => d.classList && d.classList.toggle('on', d.style.background && rgb(d.style.background) === c)); }
+function rgb(s) { if (s[0] === '#') return s; const m = s.match(/\d+/g); return '#' + m.slice(0, 3).map(n => (+n).toString(16).padStart(2, '0')).join(''); }
+setColor(color);
+let tt; function toast(s) { const t = $('toast'); t.textContent = s; t.style.opacity = 1; clearTimeout(tt); tt = setTimeout(() => t.style.opacity = 0, 1800); }
+function upd() { $('cnt').textContent = vox.size + ' / ' + MAXV + ' bloques · plano Y ' + layer; }
+
+// ---------- historial ----------
+function snap() { undoS.push(new Map(vox)); if (undoS.length > 100) undoS.shift(); redoS = []; }
+function restore(m) { vox.clear(); m.forEach((v, k) => vox.set(k, v)); upd(); }
+$('undo').onclick = () => { if (!undoS.length) return; redoS.push(new Map(vox)); restore(undoS.pop()); };
+$('redo').onclick = () => { if (!redoS.length) return; undoS.push(new Map(vox)); restore(redoS.pop()); };
+$('clr').onclick = () => { if (!vox.size) return; snap(); vox.clear(); upd(); };
+$('new').onclick = () => { snap(); vox.clear(); $('name').value = ''; upd(); };
+
+// ---------- edición ----------
+function put(x, y, z, c) {
+  const pts = [[x, y, z]]; if (mirror) pts.push([-1 - x, y, z]);
+  for (const p of pts) {
+    if (!inB(...p)) continue;
+    const k = K(...p);
+    if (c === null) vox.delete(k);
+    else if (vox.has(k) || vox.size < MAXV) vox.set(k, c);
+    else { toast('Máximo ' + MAXV + ' bloques'); return; }
+  }
+}
+function line(a, b, c) {
+  const n = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]), Math.abs(b[2] - a[2])) || 1;
+  for (let i = 0; i <= n; i++) put(Math.round(a[0] + (b[0] - a[0]) * i / n), Math.round(a[1] + (b[1] - a[1]) * i / n), Math.round(a[2] + (b[2] - a[2]) * i / n), c);
+}
+function box(a, b, c) {
+  for (let x = Math.min(a[0], b[0]); x <= Math.max(a[0], b[0]); x++)
+    for (let y = Math.min(a[1], b[1]); y <= Math.max(a[1], b[1]); y++)
+      for (let z = Math.min(a[2], b[2]); z <= Math.max(a[2], b[2]); z++) put(x, y, z, c);
+}
+function act() {
+  if (!hover) return;
+  const t = hover.place, v = hover.vox;
+  if (tool === 0) { snap(); put(t[0], t[1], t[2], color); }
+  else if (tool === 1) { if (!v) return; snap(); put(v[0], v[1], v[2], null); }
+  else if (tool === 2) { if (v) setColor(vox.get(K(...v))); }
+  else if (tool === 3 || tool === 4) {
+    if (!lineStart) { lineStart = t.slice(); toast('Elige el punto final'); return; }
+    snap(); (tool === 3 ? line : box)(lineStart, t, color); lineStart = null;
+  }
+  upd();
+}
+
+// ---------- cámara y proyección ----------
+function view(px, py, pz) {
+  let x = px - cam.tx, y = py - cam.ty, z = pz - cam.tz;
+  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  let x1 = x * cy - z * sy, z1 = x * sy + z * cy;
+  let y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+  return [x1, y1, z2];
+}
+function toWorld(v) {
+  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  const y = v[1] * cp + v[2] * sp, z1 = -v[1] * sp + v[2] * cp;
+  const x = v[0] * cy + z1 * sy, z = -v[0] * sy + z1 * cy;
+  return [x + cam.tx, y + cam.ty, z + cam.tz];
+}
+function proj(p) {
+  const v = view(p[0], p[1], p[2]), d = v[2] + cam.dist;
+  if (d < 1) return null;
+  return [W / 2 + cam.f * v[0] / d, H / 2 - cam.f * v[1] / d, d];
+}
+const camPos = () => toWorld([0, 0, -cam.dist]);
+function rayAt(sx, sy) {
+  const o = camPos(), e = toWorld([(sx - W / 2) / cam.f, -(sy - H / 2) / cam.f, 1 - cam.dist]);
+  return [o, [e[0] - o[0], e[1] - o[1], e[2] - o[2]]];
+}
+const FACES = [ // normal, 4 esquinas, brillo
+  [[0, 1, 0], [[0, 1, 0], [1, 1, 0], [1, 1, 1], [0, 1, 1]], 1.0],
+  [[0, -1, 0], [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 0, 1]], 0.5],
+  [[0, 0, 1], [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], 0.8],
+  [[0, 0, -1], [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]], 0.7],
+  [[1, 0, 0], [[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], 0.6],
+  [[-1, 0, 0], [[0, 0, 0], [0, 0, 1], [0, 1, 1], [0, 1, 0]], 0.55]
+];
+function shade(hex, k) { const n = parseInt(hex.slice(1), 16); return 'rgb(' + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(c => Math.round(c * k)).join(',') + ')'; }
+function poly(pts, fill, stroke, alpha) {
+  g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath();
+  if (fill) { g.globalAlpha = alpha == null ? 1 : alpha; g.fillStyle = fill; g.fill(); g.globalAlpha = 1; }
+  if (stroke) { g.strokeStyle = stroke; g.lineWidth = 1; g.stroke(); }
+}
+function inPoly(p, pts) { // cuadrilátero convexo
+  let s = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length], c = (b[0] - a[0]) * (p.y - a[1]) - (b[1] - a[1]) * (p.x - a[0]);
+    if (c !== 0) { if (s && Math.sign(c) !== s) return false; s = Math.sign(c); }
+  }
+  return true;
+}
+// muñeco de referencia (en píxeles de Minecraft): [x0,y0,z0,x1,y1,z1]
+const DUMMY = [[-4, 24, -4, 4, 32, 4], [-4, 12, -2, 4, 24, 2], [4, 12, -2, 8, 24, 2], [-8, 12, -2, -4, 24, 2], [0, 0, -2, 4, 12, 2], [-4, 0, -2, 0, 12, 2], [-1, 26, 4, 1, 28, 5]]; // la nariz marca el FRENTE (+Z)
+
+function rayBox(o, d, b) { // rayo contra caja [x0,y0,z0,x1,y1,z1]: distancia de entrada y cara
+  let tmin = -Infinity, tmax = Infinity, n = null;
+  for (let a = 0; a < 3; a++) {
+    if (Math.abs(d[a]) < 1e-9) { if (o[a] < b[a] || o[a] > b[a + 3]) return null; continue; }
+    const t1 = (b[a] - o[a]) / d[a], t2 = (b[a + 3] - o[a]) / d[a], ent = Math.min(t1, t2), ex = Math.max(t1, t2);
+    if (ent > tmin) { tmin = ent; n = [0, 0, 0]; n[a] = d[a] > 0 ? -1 : 1; }
+    tmax = Math.min(tmax, ex); if (tmin > tmax) return null;
+  }
+  return tmin < 0 || !n ? null : { t: tmin, n };
+}
+function draw() {
+  W = cv.width = innerWidth; H = cv.height = innerHeight;
+  g.clearRect(0, 0, W, H);
+  // suelo
+  g.lineWidth = 1;
+  for (let i = GX0; i <= GX1 + 1; i++) {
+    for (const [a, b] of [[[i, 0, GZ0], [i, 0, GZ1 + 1]], [[GX0, 0, i], [GX1 + 1, 0, i]]]) {
+      const p = proj(a), q = proj(b); if (!p || !q) continue;
+      g.strokeStyle = i % 8 === 0 ? 'rgba(143,214,168,.35)' : 'rgba(255,255,255,.07)';
+      g.beginPath(); g.moveTo(p[0], p[1]); g.lineTo(q[0], q[1]); g.stroke();
+    }
+  }
+  // plano de trabajo
+  if (layer > 0) {
+    const c = [[GX0, layer, GZ0], [GX1 + 1, layer, GZ0], [GX1 + 1, layer, GZ1 + 1], [GX0, layer, GZ1 + 1]].map(proj);
+    if (c.every(Boolean)) poly(c, 'rgba(143,214,168,.06)', 'rgba(143,214,168,.4)');
+  }
+  const cp = camPos();
+  // muñeco (relleno suave)
+  const dumFaces = [];
+  for (const d of DUMMY) for (const f of FACES) {
+    const pts = f[1].map(c => [d[0] + c[0] * (d[3] - d[0]), d[1] + c[1] * (d[4] - d[1]), d[2] + c[2] * (d[5] - d[2])]);
+    const ctr = pts.reduce((s, p) => [s[0] + p[0] / 4, s[1] + p[1] / 4, s[2] + p[2] / 4], [0, 0, 0]);
+    if (f[0][0] * (cp[0] - ctr[0]) + f[0][1] * (cp[1] - ctr[1]) + f[0][2] * (cp[2] - ctr[2]) <= 0) continue;
+    const pp = pts.map(proj); if (pp.some(p => !p)) continue;
+    poly(pp, '#9aa0b8', null, 0.16 * f[2]); dumFaces.push(pp);
+  }
+  // bloques visibles
+  const faces = [];
+  vox.forEach((c, k) => {
+    const [x, y, z] = k.split(',').map(Number);
+    for (const f of FACES) {
+      if (vox.has(K(x + f[0][0], y + f[0][1], z + f[0][2]))) continue;
+      const pts = f[1].map(q => [x + q[0], y + q[1], z + q[2]]);
+      const ctr = [x + .5 + f[0][0] * .5, y + .5 + f[0][1] * .5, z + .5 + f[0][2] * .5];
+      const dx = cp[0] - ctr[0], dy = cp[1] - ctr[1], dz = cp[2] - ctr[2];
+      if (f[0][0] * dx + f[0][1] * dy + f[0][2] * dz <= 0) continue;
+      const pp = pts.map(proj); if (pp.some(p => !p)) continue;
+      faces.push({ pp, d: dx * dx + dy * dy + dz * dz, c, k: f[2], v: [x, y, z], n: f[0] });
+    }
+  });
+  faces.sort((a, b) => b.d - a.d);
+  for (const f of faces) poly(f.pp, shade(f.c, f.k), 'rgba(0,0,0,.35)');
+  // aristas del muñeco por encima, muy tenues
+  for (const pp of dumFaces) poly(pp, null, 'rgba(180,190,220,.18)');
+  // objetivo bajo el ratón
+  hover = null;
+  for (let i = faces.length - 1; i >= 0; i--) {
+    const f = faces[i];
+    if (inPoly(mouse, f.pp)) { hover = { vox: f.v, d: f.d, place: [f.v[0] + f.n[0], f.v[1] + f.n[1], f.v[2] + f.n[2]] }; break; }
+  }
+  { // el muñeco también se puede tocar: el bloque se pone pegado a su superficie (cabeza, torso, brazos, piernas)
+    const [o, d] = rayAt(mouse.x, mouse.y), dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+    let best = null;
+    for (const b of DUMMY) { const r = rayBox(o, d, [b[0], b[1], b[2], b[3], b[4], b[5]]); if (r && (!best || r.t < best.t)) best = r; }
+    if (best && (!hover || best.t * best.t * dd < hover.d)) {
+      const cell = [0, 1, 2].map(a => best.n[a] > 0 ? Math.round(o[a] + d[a] * best.t) : best.n[a] < 0 ? Math.round(o[a] + d[a] * best.t) - 1 : Math.floor(o[a] + d[a] * best.t + 1e-6));
+      if (inB(cell[0], cell[1], cell[2])) hover = { vox: null, place: cell };
+    }
+  }
+  if (!hover) { // si no toca ningún bloque: el plano de trabajo
+    const [o, d] = rayAt(mouse.x, mouse.y);
+    if (Math.abs(d[1]) > 1e-6) {
+      const t = (layer - o[1]) / d[1];
+      if (t > 0) { const x = Math.floor(o[0] + d[0] * t), z = Math.floor(o[2] + d[2] * t); if (inB(x, layer, z)) hover = { vox: null, place: [x, layer, z] }; }
+    }
+  }
+  if (hover) {
+    const t = tool === 1 && hover.vox ? hover.vox : hover.place;
+    wire(t, tool === 1 ? '#ff5c6c' : '#ffffff');
+    if (mirror) wire([-1 - t[0], t[1], t[2]], 'rgba(255,255,255,.35)');
+    $('stat').textContent = 'X ' + t[0] + '  Y ' + t[1] + '  Z ' + t[2];
+  }
+  if (lineStart) wire(lineStart, '#8fd6a8');
+  requestAnimationFrame(draw);
+}
+function wire(c, col) {
+  const p = [[0,0,0],[1,0,0],[1,0,1],[0,0,1],[0,1,0],[1,1,0],[1,1,1],[0,1,1]].map(q => proj([c[0] + q[0], c[1] + q[1], c[2] + q[2]]));
+  if (p.some(q => !q)) return;
+  g.strokeStyle = col; g.lineWidth = 1.5; g.beginPath();
+  for (const [a, b] of [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]]) { g.moveTo(p[a][0], p[a][1]); g.lineTo(p[b][0], p[b][1]); }
+  g.stroke();
+}
+
+// ---------- entrada ----------
+let drag = null;
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('mousedown', e => { drag = { b: e.button, x: e.clientX, y: e.clientY, moved: 0 }; });
+addEventListener('mouseup', e => { if (drag && drag.b === 0 && drag.moved < 4) act(); drag = null; });
+addEventListener('mousemove', e => {
+  mouse.x = e.clientX; mouse.y = e.clientY;
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY; drag.moved += Math.abs(dx) + Math.abs(dy);
+  if (drag.b === 0) { cam.yaw -= dx * 0.008; cam.pitch = Math.max(-1.45, Math.min(1.45, cam.pitch + dy * 0.008)); }
+  else { const k = cam.dist / cam.f; const r = toWorld([-dx * k, dy * k, 0]), o = toWorld([0, 0, 0]); cam.tx += r[0] - o[0]; cam.ty += r[1] - o[1]; cam.tz += r[2] - o[2]; }
+});
+cv.addEventListener('wheel', e => { e.preventDefault(); cam.dist = Math.max(15, Math.min(260, cam.dist * (e.deltaY > 0 ? 1.1 : 0.9))); }, { passive: false });
+const keys = {};
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const k = e.key.toLowerCase(); keys[k] = true;
+  if (e.ctrlKey && k === 'z') { $('undo').click(); e.preventDefault(); }
+  else if (e.ctrlKey && k === 'y') { $('redo').click(); e.preventDefault(); }
+  else if (k >= '1' && k <= '5') setTool(+k - 1);
+  else if (k === ' ') { layer = Math.min(GY1, layer + 1); upd(); e.preventDefault(); }
+  else if (k === 'shift') { layer = Math.max(0, layer - 1); upd(); }
+  else if (k === 'escape') lineStart = null;
+});
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+setInterval(() => {
+  if (keys.q) cam.yaw += 0.03; if (keys.e) cam.yaw -= 0.03;
+  const s = 0.6, cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
+  if (keys.w) { cam.tx -= sy * s; cam.tz += cy * s; } if (keys.s) { cam.tx += sy * s; cam.tz -= cy * s; }
+  if (keys.a) { cam.tx -= cy * s; cam.tz -= sy * s; } if (keys.d) { cam.tx += cy * s; cam.tz += sy * s; }
+}, 16);
+
+// ---------- guardar / cargar ----------
+const api = window.studio;
+const clean = (n) => (n || '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24);
+$('save').onclick = async () => {
+  const name = clean($('name').value);
+  if (!name) return toast('Ponle un nombre');
+  if (!vox.size) return toast('Está vacío');
+  const data = { format: 'ametra-voxel', v: 1, name, slot: $('slot').value, voxels: [...vox].map(([k, c]) => [...k.split(',').map(Number), c.slice(1)]) };
+  if (api) { const r = await api.save(data); toast(r && r.ok ? 'Guardado: ' + name : 'No se pudo guardar'); refresh(); }
+  else toast('Solo se guarda dentro del launcher');
+};
+async function refresh() {
+  if (!api) return; const items = $('items'); items.innerHTML = '';
+  const list = await api.list();
+  if (!list.length) items.innerHTML = '<div style="color:var(--mu)">Aún no tienes</div>';
+  list.forEach(n => {
+    const d = document.createElement('div'); d.className = 'li'; d.innerHTML = '<span>' + n + '</span><span title="Borrar">✕</span>';
+    d.firstChild.onclick = async () => {
+      const r = await api.load(n); if (!r || r.format !== 'ametra-voxel') return toast('Archivo inválido');
+      snap(); vox.clear(); (r.voxels || []).slice(0, MAXV).forEach(v => vox.set(K(v[0], v[1], v[2]), '#' + v[3]));
+      $('name').value = r.name; $('slot').value = r.slot; $('slot').onchange(); upd(); toast('Abierto: ' + n);
+    };
+    d.lastChild.onclick = async () => { await api.remove(n); refresh(); };
+    items.appendChild(d);
+  });
+}
+$('slot').onchange(); upd(); refresh(); draw();
+</script></body></html>

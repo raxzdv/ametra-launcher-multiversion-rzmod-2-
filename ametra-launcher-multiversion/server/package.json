@@ -1,0 +1,9 @@
+{
+  "name": "ametra-accounts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Servidor de cuentas de Ametra (sin dependencias)",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

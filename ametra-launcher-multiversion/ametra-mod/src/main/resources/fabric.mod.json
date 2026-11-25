@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "ametra",
+  "version": "${version}",
+  "name": "RzClient",
+  "description": "Menú in-game animado (Shift derecho), menú principal propio, HUD configurable, crosshair, hitbox, viewmodel, freelook, efectos, reach y cosméticos.",
+  "authors": ["Ametra"],
+  "license": "MIT",
+  "icon": "assets/ametra/icon.png",
+  "environment": "client",
+  "mixins": ["ametra.mixins.json"],
+  "entrypoints": {
+    "client": ["com.ametra.AmetraClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "${mc_dep}",
+    "java": ">=${java_version}",
+    "fabric-api": "*"
+  }
+}

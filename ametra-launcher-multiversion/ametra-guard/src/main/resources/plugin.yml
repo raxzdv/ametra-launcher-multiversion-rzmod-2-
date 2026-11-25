@@ -1,0 +1,18 @@
+name: AmetraGuard
+main: com.ametra.guard.GuardPlugin
+version: 1.0.0
+api-version: '1.21'
+description: Exige el cliente Ametra y analiza el comportamiento de combate.
+commands:
+  guard:
+    description: Administración
+    usage: /guard <status|label|alerts|reload>
+    permission: ametraguard.admin
+    aliases: [ag]
+permissions:
+  ametraguard.admin:
+    default: op
+  ametraguard.alerts:
+    default: op
+  ametraguard.bypass:
+    default: false

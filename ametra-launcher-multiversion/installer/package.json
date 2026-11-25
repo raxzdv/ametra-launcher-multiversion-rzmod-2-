@@ -1,0 +1,26 @@
+{
+  "name": "ametra-instalador",
+  "version": "1.0.0",
+  "description": "Instalador animado de AmetraClient",
+  "main": "main.js",
+  "author": "Ametra",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.ametra.instalador",
+    "productName": "RzClient-Instalador",
+    "files": ["main.js", "preload.js", "index.html", "payload-info.json"],
+    "extraResources": [{ "from": "payload", "to": "payload" }],
+    "win": {
+      "target": "portable",
+      "icon": "../build/icon.ico"
+    },
+    "portable": { "artifactName": "AmetraClient-Instalador.exe" }
+  }
+}

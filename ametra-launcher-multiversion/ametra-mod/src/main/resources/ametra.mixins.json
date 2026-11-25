@@ -1,0 +1,25 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.ametra.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [],
+  "client": [
+    "GameRendererMixin",
+    "HeldItemRendererMixin",
+    "InGameHudMixin",
+    "MouseMixin",
+    "MinecraftClientMixin",
+    "EntityMixin",
+    "CameraMixin",
+    "InGameOverlayRendererMixin",
+    "SkinMixin",
+    "MouseInputMixin",
+    "DawnScreenMixin",
+    "DawnTitleMixin",
+    "DawnBobMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

@@ -1,0 +1,207 @@
+/* =========================================================
+   Ametra Cliente — inicio estilo Mellow (se carga al final)
+   Reorganiza las mismas piezas: título + Jugar a la izquierda,
+   fila "Volver a jugar" abajo, novedades a la derecha.
+   ========================================================= */
+
+/* ---------- Perfil activo: bloque de título grande ---------- */
+.sanct .profile-banner {
+  top: 28px !important;
+  left: 40px !important;
+  max-width: 560px !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  gap: 14px !important;
+}
+.sanct .profile-banner::before,
+.sanct .profile-banner::after {
+  display: none !important;
+}
+.sanct .profile-banner .profile-skin {
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .06);
+}
+.sanct .profile-banner .eyebrow {
+  font-size: 11px;
+  letter-spacing: .22em;
+  color: #c96cff;
+}
+.sanct .profile-banner strong {
+  display: block;
+  font-size: 40px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.01em;
+  line-height: 1.05;
+  color: #fff;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, .6);
+}
+.sanct .profile-banner small {
+  color: #b7b7c8;
+  font-size: 13px !important;
+  max-width: 420px !important;
+}
+.sanct .profile-edit {
+  background: rgba(255, 255, 255, .06) !important;
+  border: 1px solid rgba(255, 255, 255, .14) !important;
+  border-radius: 10px !important;
+}
+
+/* ---------- Personaje: más hacia la derecha, como en Mellow ---------- */
+.sanct .herostage .model {
+  left: 66% !important;
+}
+.sanct .hero-user {
+  display: none !important;
+}
+
+/* ---------- Botón Jugar: grande, a la izquierda bajo el título ---------- */
+.sanct .sa-play {
+  left: 40px !important;
+  bottom: auto !important;
+  top: 190px !important;
+  transform: none !important;
+  padding: 18px 56px !important;
+  border-radius: 14px !important;
+  font-size: 20px !important;
+  letter-spacing: .16em !important;
+  background: linear-gradient(180deg, #ffd45e, #f7b52a) !important;
+  color: #2a1700 !important;
+  box-shadow: 0 0 0 1px rgba(255, 230, 150, .4), 0 16px 40px -10px rgba(247, 181, 42, .75) !important;
+  text-shadow: none !important;
+}
+.sanct .sa-play:hover {
+  transform: translateY(-2px) !important;
+}
+
+/* ---------- Panel de perfiles: fila "Volver a jugar" abajo a la izquierda ---------- */
+.sanct .sa-dock {
+  top: auto !important;
+  bottom: 22px !important;
+  left: 40px !important;
+  width: 640px !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  gap: 10px !important;
+}
+.sanct .sa-dock .rhead {
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #9a9aae;
+}
+.sanct .sa-dock .instances {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 12px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding-bottom: 4px;
+}
+.sanct .sa-dock .inst {
+  flex: 0 0 200px !important;
+  height: 96px !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-end !important;
+  padding: 12px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(160deg, rgba(40, 30, 58, .85), rgba(12, 10, 18, .9)) !important;
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+}
+.sanct .sa-dock .inst.first {
+  height: 96px !important;
+  border-color: rgba(201, 108, 255, .45) !important;
+}
+.sanct .sa-dock .inst .ico {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  width: 34px !important;
+  height: 34px !important;
+  font-size: 15px !important;
+}
+.sanct .sa-dock .inst .info b {
+  font-size: 15px !important;
+}
+.sanct .sa-dock .inst .gear,
+.sanct .sa-dock .inst .gbtn {
+  display: none !important;
+}
+.sanct .sa-dock .dbottom {
+  display: flex !important;
+  gap: 8px !important;
+}
+.sanct .sa-dock .dbottom .pixbtn {
+  flex: 1 !important;
+  grid-column: auto !important;
+}
+.sanct .sa-dock .dbottom .dbtn {
+  flex: 1 !important;
+}
+.sanct .sa-dock #modWarn {
+  margin: 0;
+}
+
+/* ---------- Columna derecha: novedades apiladas ---------- */
+.sanct .sa-feed {
+  top: 28px !important;
+  right: 40px !important;
+  width: 300px !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  gap: 12px !important;
+}
+.sanct .sa-feed .nhead b {
+  font-size: 13px;
+  letter-spacing: .08em;
+  color: #fff;
+}
+.sanct .sa-feed .news {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+.sanct .sa-feed .newscard {
+  grid-area: auto !important;
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  padding: 14px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(160deg, rgba(40, 30, 58, .8), rgba(12, 10, 18, .85)) !important;
+}
+.sanct .sa-feed .newscard:not(.on) {
+  display: block;
+}
+.sanct .sa-feed .nav-dots {
+  display: none !important;
+}
+.sanct .sa-feed .srvcard {
+  background: rgba(12, 10, 18, .85) !important;
+  border-radius: 14px !important;
+  padding: 10px !important;
+}
+
+/* ---------- Barra de fondo: discreta, abajo a la derecha ---------- */
+.sanct .sa-bgbar {
+  right: 40px !important;
+  bottom: 22px !important;
+}
+
+/* ---------- En pantallas pequeñas evitamos que se encimen ---------- */
+@media (max-width: 1280px) {
+  .sanct .sa-dock { width: 520px !important; }
+  .sanct .sa-feed { width: 260px !important; }
+  .sanct .profile-banner strong { font-size: 32px !important; }
+}

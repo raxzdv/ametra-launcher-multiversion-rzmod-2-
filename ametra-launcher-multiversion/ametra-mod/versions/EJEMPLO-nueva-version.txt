@@ -1,0 +1,7 @@
+Para añadir otra versión de Minecraft:
+1) Copia una .properties parecida a <version>.properties y pon los valores de https://fabricmc.net/develop
+   (minecraft_version, mc_dep, java_version: 21 desde 1.20.5, 17 de 1.18 a 1.20.4).
+2) Elige la familia de código con  compat=<carpeta de src/compat>.  Si la versión es casi igual a otra, reutiliza su carpeta;
+   si no, copia la más cercana a src/compat/<nueva>/ y ajusta SOLO lo que no compile (casi siempre Compat.java).
+3) Añade la versión a la lista "mc" en .github/workflows/release.yml y su entrada en mod-compat.json.
+4) Lanza el workflow: el error rojo de esa versión dice exactamente qué línea de Compat.java hay que cambiar.
